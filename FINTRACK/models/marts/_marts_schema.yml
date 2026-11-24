@@ -1,0 +1,96 @@
+version: 2
+
+models:
+  - name: fct_transactions
+    description: "Transactions validées (modèle incrémental, une ligne par transaction)"
+    tests:
+      # débit -> montant_signe négatif ; crédit -> montant_signe positif
+      - dbt_utils.expression_is_true:
+          expression: "(type_operation = 'debit' and montant_signe < 0) or (type_operation = 'credit' and montant_signe > 0)"
+    columns:
+      - name: transaction_id
+        tests:
+          - unique
+          - not_null
+      - name: montant
+        description: "Montant en euros, toujours positif"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: true
+      - name: date_transaction
+        description: "Date et heure de la transaction (jamais dans le futur)"
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "<= current_timestamp()::timestamp_ntz"
+
+  - name: fct_virements
+    description: "Virements internes exécutés, 2 lignes par virement (sortant / entrant)"
+    tests:
+      - dbt_utils.expression_is_true:
+          expression: "compte_source_id != compte_dest_id"
+    columns:
+      - name: virement_ligne_id
+        tests:
+          - unique
+          - not_null
+      - name: sens
+        tests:
+          - accepted_values:
+              values: ['sortant', 'entrant']
+      - name: montant
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: true
+
+  - name: mart_budget_vs_reel
+    description: "Budget prévu comparé aux dépenses réelles, par compte, catégorie et mois"
+    tests:
+      # dépassement = vrai exactement quand l'écart est négatif
+      - dbt_utils.expression_is_true:
+          expression: "depassement = (ecart < 0)"
+    columns:
+      - name: montant_prevu
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+  - name: mart_solde_mensuel
+    description: "Solde mensuel et cumulé par compte (transactions + virements internes)"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ['compte_id', 'periode']
+    columns:
+      - name: solde_cumule
+        description: "Solde à la fin du mois"
+        tests:
+          # remplace l'ancien test singulier assert_solde_mensuel_positif
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              row_condition: "type_compte = 'epargne'"
+
+  - name: dim_comptes
+    description: "Un compte client par ligne (état actuel)"
+    columns:
+      - name: compte_id
+        tests: [unique, not_null]
+
+  - name: dim_categories
+    description: "Catégories enrichies avec l'ordre d'affichage et la priorité dashboard (seed mapping_groupes)"
+    columns:
+      - name: categorie_id
+        tests: [unique, not_null]
+      - name: ordre_affichage
+        tests: [not_null]
+
+  - name: dim_comptes_historique
+    description: "Historique de toutes les versions de chaque compte (SCD Type 2, issu du snapshot snap_comptes)"
+    config:
+      tags: ['weekly']
+    columns:
+      - name: version_id
+        tests: [unique, not_null]
+      - name: est_version_courante
+        description: "Vrai pour la version actuellement en vigueur"

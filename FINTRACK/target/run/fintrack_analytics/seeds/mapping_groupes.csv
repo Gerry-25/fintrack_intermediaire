@@ -1,0 +1,14 @@
+
+    
+    
+    
+        create transient table FINTRACK_DB.DEV_GERRY_RAW.mapping_groupes (groupe text,ordre_affichage integer,priorite_dashboard text)
+    ;
+    -- dbt seed --
+    
+            insert overwrite into FINTRACK_DB.DEV_GERRY_RAW.mapping_groupes (groupe, ordre_affichage, priorite_dashboard) values
+            (%s,%s,%s),(%s,%s,%s),(%s,%s,%s),(%s,%s,%s),(%s,%s,%s),(%s,%s,%s)
+        
+
+;
+  

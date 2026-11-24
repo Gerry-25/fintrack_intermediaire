@@ -1,0 +1,43 @@
+name: 'fintrack_analytics'
+version: '2.0.0'
+config-version: 2
+
+profile: 'fintrack_analytics'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+docs-paths: ["docs", "models"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Nombre de jours "en arrière" relus à chaque run incrémental
+# (pour rattraper les transactions validées en retard)
+vars:
+  jours_recul: 7
+
+# Section 7.1 : journal de chaque exécution dans MARTS.dbt_run_log
+on-run-end:
+  - "{{ journaliser_run(results) }}"
+
+models:
+  fintrack_analytics:
+    staging:
+      +materialized: view
+      +schema: staging
+      +tags: ['daily']
+    intermediate:
+      +materialized: ephemeral
+    marts:
+      +materialized: table
+      +schema: marts
+      +tags: ['daily']
+
+seeds:
+  fintrack_analytics:
+    +schema: raw

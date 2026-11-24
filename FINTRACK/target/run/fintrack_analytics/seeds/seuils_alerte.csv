@@ -1,0 +1,14 @@
+
+    
+    
+    
+        create transient table FINTRACK_DB.DEV_GERRY_RAW.seuils_alerte (code_alerte text,seuil_pct integer,severite text,description text)
+    ;
+    -- dbt seed --
+    
+            insert overwrite into FINTRACK_DB.DEV_GERRY_RAW.seuils_alerte (code_alerte, seuil_pct, severite, description) values
+            (%s,%s,%s,%s),(%s,%s,%s,%s),(%s,%s,%s,%s)
+        
+
+;
+  

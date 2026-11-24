@@ -1,0 +1,32 @@
+# ============================================================
+# FICHIER EXEMPLE — à copier vers ~/.dbt/profiles.yml
+# Remplacez les valeurs entre < > par vos informations
+# ============================================================
+
+fintrack_analytics:
+  target: dev          # par défaut on travaille en dev
+  outputs:
+
+    dev:
+      type: snowflake
+      account: 'BICDXWG-XR02720'           # ex : xy12345.eu-west-1
+      user: 'NACH'
+      password: 'PasswordGerry@2025'
+      role: 'FINTRACK_ROLE'
+      database: 'FINTRACK_DB'
+      warehouse: 'FINTRACK_WH'
+      schema: 'DEV_GERRY'              # schéma personnel pour le dev
+      threads: 2
+
+    # Section 8.2 : target de production
+    # Utilisation : dbt build --target prod
+    prod:
+      type: snowflake
+      account: 'BICDXWG-XR02720'
+      user: 'NACH'
+      password: "{{ env_var('DBT_PROD_PASSWORD') }}"   # jamais en clair
+      role: 'FINTRACK_ROLE'
+      database: 'FINTRACK_DB'
+      warehouse: 'FINTRACK_WH'
+      schema: 'MARTS'
+      threads: 4

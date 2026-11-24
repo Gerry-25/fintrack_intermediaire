@@ -1,0 +1,31 @@
+
+  
+    
+
+create or replace transient table FINTRACK_DB.DEV_GERRY_MARTS.dim_comptes
+    
+    
+    
+    
+    
+
+    as (with comptes as (
+    select * from FINTRACK_DB.DEV_GERRY_STAGING.stg_comptes
+)
+
+select
+    compte_id,
+    nom_client,
+    email,
+    type_compte,
+    date_ouverture,
+    solde_initial,
+    statut,
+    datediff('day', date_ouverture, current_date()) as anciennete_jours
+
+from comptes
+    )
+;
+
+
+  

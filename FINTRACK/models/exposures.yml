@@ -1,0 +1,28 @@
+version: 2
+
+exposures:
+  - name: suivi_budgetaire_client
+    label: "Suivi budgétaire client"
+    type: dashboard
+    maturity: high
+    url: https://metabase.fintrack.example/dashboard/1
+    description: "Dashboard Metabase : budget prévu vs dépenses réelles pour chaque client."
+    depends_on:
+      - ref('mart_budget_vs_reel')
+      - ref('dim_comptes')
+    owner:
+      name: Équipe Data FinTrack
+      email: data@fintrack.example
+
+  - name: synthese_mensuelle
+    label: "Synthèse mensuelle"
+    type: analysis
+    maturity: medium
+    description: "Rapport automatisé envoyé chaque début de mois : soldes, transactions et répartition par catégorie."
+    depends_on:
+      - ref('mart_solde_mensuel')
+      - ref('fct_transactions')
+      - ref('dim_categories')
+    owner:
+      name: Équipe Data FinTrack
+      email: data@fintrack.example
